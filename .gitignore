@@ -1,0 +1,16 @@
+# Personal trading data — not committed
+scripts/pick_journal.csv
+
+# Claude project memory
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+env/
+venv/
+
+# macOS
+.DS_Store
