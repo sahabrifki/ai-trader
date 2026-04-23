@@ -193,6 +193,9 @@ def scan_ticker(ticker, is_portfolio=False, portfolio_entry=None, ihsg_ret5=0.0)
         tk = yf.Ticker(ticker)
         hist = tk.history(period=PERIOD)
 
+        # Drop rows with incomplete OHLCV (e.g. partial data before market close)
+        hist = hist.dropna(subset=['Open', 'High', 'Low', 'Close', 'Volume'])
+
         if len(hist) < 60:
             return None
 
