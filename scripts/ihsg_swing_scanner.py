@@ -583,26 +583,34 @@ def run_scan(portfolio_override=None, min_score=MIN_SCORE):
         for _, r in ob_list.iterrows():
             print(f"  {r['ticker']:<8}  RSI:{r['rsi']:.0f}  5d:{r['ret5']:+.1f}%  Phase:{r['phase']}")
 
-    # ── TOP 3 BEST SETUPS ─────────────────────────────────────
+    # ── TOP PICK PER CAP TIER ─────────────────────────────────
     non_port = qualified[~qualified['is_portfolio']].copy()
     actionable = non_port[
         ~non_port['late_stage'] &
         (non_port['rsi_flag'] != 'OVERBOUGHT')
-    ].sort_values('score', ascending=False).head(3)
+    ].sort_values('score', ascending=False)
 
     print(f"\n{'='*60}")
-    print(f"⭐  TOP 3 BEST SETUPS — ACTIONABLE NOW")
+    print(f"⭐  BEST PICK PER CAP TIER — ACTIONABLE NOW")
     print(f"{'='*60}")
-    if len(actionable) == 0:
-        print("  No actionable setups today (all late-stage or overbought).")
-    else:
-        for i, (_, r) in enumerate(actionable.iterrows(), 1):
-            rs_str = f"RS {r['rs_vs_ihsg']:+.1f}%"
-            candle_str = r['candle_signal']
-            sector_str = f"{r['sector']} {sector_strength.loc[r['sector'], 'avg_score'] if r['sector'] in sector_strength.index else '?':.0f}"
-            print(f"\n  #{i} {r['ticker']:<6} Score:{r['score']}/100  [{r['cap_tier']}]")
-            print(f"     Entry: {r['entry_low']:,} – {r['entry_high']:,}  |  SL: {r['sl']:,}  |  TP2: {r['tp2']:,}  |  R/R 1:{r['rr_tp2']}")
-            print(f"     {r['phase']} | RSI {r['rsi']:.0f} | {rs_str} | Candle: {candle_str} | Sector: {sector_str}")
+
+    tier_labels = {'Large': 'LARGE CAP', 'Mid': 'MID CAP', 'Small': 'SMALL CAP'}
+    found_any = False
+    for tier in ['Large', 'Mid', 'Small']:
+        tier_picks = actionable[actionable['cap_tier'] == tier]
+        if tier_picks.empty:
+            print(f"\n  {tier_labels[tier]:<10}  — no qualified setup")
+            continue
+        found_any = True
+        r = tier_picks.iloc[0]
+        rs_str = f"RS {r['rs_vs_ihsg']:+.1f}%"
+        sec_score = sector_strength.loc[r['sector'], 'avg_score'] if r['sector'] in sector_strength.index else 0
+        print(f"\n  {tier_labels[tier]} — {r['ticker']}  Score:{r['score']}/100")
+        print(f"  Entry: {r['entry_low']:,} – {r['entry_high']:,}  |  SL: {r['sl']:,}  |  TP2: {r['tp2']:,}  |  R/R 1:{r['rr_tp2']}")
+        print(f"  {r['phase']} | RSI {r['rsi']:.0f} | {rs_str} | Candle: {r['candle_signal']} | {r['sector']} ({sec_score:.0f})")
+
+    if not found_any:
+        print("  No actionable setups today.")
     print(f"{'='*60}")
 
     print(f"\n{'='*60}")
