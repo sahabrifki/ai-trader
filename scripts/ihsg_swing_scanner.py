@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 # ─────────────────────────────────────────
 PORTFOLIO = {
     # ticker: entry_price  — always included regardless of filters
-    "ESSA.JK": 800,
+    # e.g. "ESSA.JK": 800,
 }
 
 MIN_SCORE = 55
