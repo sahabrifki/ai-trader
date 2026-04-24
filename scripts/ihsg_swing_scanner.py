@@ -427,7 +427,7 @@ def fetch_ihsg_ret5():
     return 0.0
 
 
-def run_scan(portfolio_override=None, min_score=MIN_SCORE):
+def run_scan(portfolio_override=None, min_score=MIN_SCORE, force=False):
     if portfolio_override:
         global PORTFOLIO
         PORTFOLIO = portfolio_override
@@ -446,10 +446,15 @@ def run_scan(portfolio_override=None, min_score=MIN_SCORE):
     # Market regime filter
     if ihsg_ret5 < -4.0:
         print(f"\n🚨 MARKET REGIME: CRISIS (IHSG {ihsg_ret5:+.1f}% in 5d)")
-        print(f"   Scan aborted — conditions too bearish for swing entries.")
-        print(f"   Wait for IHSG to stabilize before re-entering.\n")
-        print(f"{'='*60}\n")
-        return
+        if not force:
+            print(f"   Scan aborted — conditions too bearish for swing entries.")
+            print(f"   Wait for IHSG to stabilize before re-entering.")
+            print(f"   Use --force to override and scan anyway.\n")
+            print(f"{'='*60}\n")
+            return
+        print(f"   ⚠️  --force override active — scanning with min_score=80, Expansion/Oversold Bounce only\n")
+        effective_min_score = 80
+        regime_valid_phases = {'Expansion', 'Oversold Bounce'}
     elif ihsg_ret5 < -2.0:
         regime = "BEARISH"
         effective_min_score = max(min_score, 70)
@@ -796,7 +801,8 @@ def review_journal(silent=False):
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == 'journal':
+    args = sys.argv[1:]
+    if 'journal' in args:
         review_journal(silent=False)
     else:
-        run_scan()
+        run_scan(force='--force' in args)
